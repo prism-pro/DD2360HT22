@@ -22,7 +22,7 @@ double Timer_start(){
 //@@ Insert code to implement timer stop
 double Timer_Consumption(double time_of_start){ 
     struct timeval toe;
-    gettimeofday(&tos,NULL);
+    gettimeofday(&toe,NULL);
     return (((double)toe.tv_sec + (double)toe.tv_usec / 1.e6)-time_of_start);
 }
 
@@ -37,6 +37,7 @@ int main(int argc, char **argv) {
   DataType *deviceInput2;
   DataType *deviceOutput;
 
+  double time;
   //@@ Insert code below to read in inputLength from args
   inputLength = atoi(argv[1]);
   if (inputLength > 0)
@@ -74,24 +75,31 @@ int main(int argc, char **argv) {
   cudaMalloc(&deviceOutput, inputLength*size_of_type);
 
   //@@ Insert code to below to Copy memory to the GPU here
+  time = Timer_start();
   cudaMemcpy(deviceInput1, hostInput1, inputLength*size_of_type, cudaMemcpyHostToDevice);
   cudaMemcpy(deviceInput2, hostInput2, inputLength*size_of_type, cudaMemcpyHostToDevice);
+  time = Timer_Consumption(time);
+  printf("Time comsuption of copying memory of %d data to the GPU is %f s \n ", inputLength, time);
 
   //@@ Initialize the 1D grid and block dimensions here
-
+  
   int ThreadNumPerBlock = 256; 
   int blockNum = (inputLength + ThreadNumPerBlock - 1) / ThreadNumPerBlock;
- 
 
   //@@ Launch the GPU Kernel here
-
-  vecAdd <<<blockNum, threadPerBlock>>>(deviceInput1, deviceInput2, deviceOutput, inputLength);
+  time = Timer_start();
+  vecAdd <<<blockNum, ThreadNumPerBlock>>>(deviceInput1, deviceInput2, deviceOutput, inputLength);
   cudaDeviceSynchronize();
+  time = Timer_Consumption(time);
+  printf("Time comsuption of computing  %d data in the GPU is %f s \n ", inputLength, time);
 
   //@@ Copy the GPU memory back to the CPU here
-  cudaMemcpy(hostOutput, deviceOutput, inputActualSize, cudaMemcpyDeviceToHost);
+  time = Timer_start();
+  cudaMemcpy(hostOutput, deviceOutput, inputLength*size_of_type, cudaMemcpyDeviceToHost);
   cudaDeviceSynchronize();
-
+  time = Timer_Consumption(time);
+  printf("Time comsuption of copying memory of %d data to the host is %f s \n ", inputLength, time);
+ 
   //@@ Insert code below to compare the output with the reference
 
   bool equal = true;
@@ -102,13 +110,13 @@ int main(int argc, char **argv) {
     }
   }
 
-  if (equal == ture)
+  if (equal == true)
   {
     printf("the results are equal.");
   }
   else 
   {
-    printf("some of the results are unequal.")
+    printf("some of the results are unequal.");
   }
   
   //@@ Free the GPU memory here
@@ -122,3 +130,4 @@ int main(int argc, char **argv) {
   free(resultRef);
   return 0;
 }
+

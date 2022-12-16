@@ -20,18 +20,17 @@ double Timer_Consumption(double time_of_start){
 __global__ void gemm(DataType *A, DataType *B, DataType *C, int numARows,
                       int numAColumns, int numBRows, int numBColumns){
   //@@ Insert code to implement matrix multiplication here
-int col = blockIdx.x * blockDim.x + threadIdx.x;
-int row = blockIdx.y * blockDim.y + threadIdx.y;
-int i；
-if (row < numARows && col < numBColumns)
-{
-  for (size_t i = 0; i < numAColumns; i++)
+  int col = blockIdx.x * blockDim.x + threadIdx.x;
+  int row = blockIdx.y * blockDim.y + threadIdx.y;
+  if ((col >= numBColumns) || (row >= numARows))
+    return;
+
+  //DataType tmpSum = 0.0;
+  for (int k = 0; k < numAColumns; k++)
   {
-    C[row * numBColumns + col] = tmpSum += A[row * numAColumns + k] * B[k * numBColumns + col];
+    C[row * numBColumns + col] += A[row * numAColumns + k] * B[k * numBColumns + col];
   }
   
-}
-
 }
 
 int main(int argc, char **argv) {
@@ -63,7 +62,7 @@ int main(int argc, char **argv) {
   }
   else
   {
-    printf("incorrect dimension\n")
+    printf("incorrect dimension\n");
     return 255;
   }
   
@@ -82,7 +81,7 @@ int main(int argc, char **argv) {
   {
     for (int j = 0; j < numAColumns; j++)
     {
-      DataType randomNumber = (DataType)rand() %MAX;
+      DataType randomNumber = (DataType)(rand() %MAX);
       hostA[i * numAColumns + j] = randomNumber;
     }
   }
@@ -91,7 +90,7 @@ int main(int argc, char **argv) {
   {
     for (int j = 0; j < numBColumns; j++)
     {
-      DataType randomNumber = (DataType)rand() %MAX;
+      DataType randomNumber = (DataType)(rand() %MAX);
       hostB[i * numBColumns + j] = randomNumber;
     }
   }
@@ -122,8 +121,8 @@ int main(int argc, char **argv) {
   printf("Time to copy memory from  Host to Device: %f\n", time_h2d);
 
   //@@ Initialize the grid and block dimensions here
-  int threadPerBlockX = 64;
-  int threadPerBlockY = 64;
+  int threadPerBlockX = 32;
+  int threadPerBlockY = 32;
   int blockNumX = (numCColumns + threadPerBlockX - 1) / threadPerBlockX;
   int blockNumY = (numCRows + threadPerBlockY - 1) / threadPerBlockY;
   //printf("threads per block x: %i y: %i\n", threadPerBlockX, threadPerBlockY);
@@ -151,7 +150,9 @@ int main(int argc, char **argv) {
       if (fabs(hostC[i * numCColumns + j] - resultRef[i * numCColumns + j]) > 1e-7)
       {
         equal = false;
-        break;
+        printf("%d row %d col host is %f, ref is %f \n", i,j,hostC[i * numCColumns + j],
+        resultRef[i * numCColumns + j]);
+        //break;
       }
     }
   }
@@ -177,3 +178,4 @@ int main(int argc, char **argv) {
 
   return 0;
 }
+

@@ -47,16 +47,17 @@ int main(int argc, char **argv) {
   else
   {
     printf("The input length is an invalid number, please choose a number greater than 0");
+    return 255;
   }
   
   
   //@@ Insert code below to allocate Host memory for input and output
   int size_of_type = sizeof(DataType);
-
-  hostInput1 = (DataType*) malloc(inputLength*size_of_type);
-  hostInput2 = (DataType*) malloc(inputLength*size_of_type);
-  hostOutput = (DataType*) malloc(inputLength*size_of_type);
-  resultRef = (DataType*) malloc(inputLength*size_of_type);
+  int InputSize=inputLength*size_of_type
+  hostInput1 = (DataType*) malloc(InputSize);
+  hostInput2 = (DataType*) malloc(InputSize);
+  hostOutput = (DataType*) malloc(InputSize);
+  resultRef = (DataType*) malloc(InputSize);
   //@@ Insert code below to initialize hostInput1 and hostInput2 to random numbers, and create reference result in CPU
   srand(inputLength);
   int MAX=10;
@@ -70,14 +71,14 @@ int main(int argc, char **argv) {
 
   //@@ Insert code below to allocate GPU memory here
 
-  cudaMalloc(&deviceInput1, inputLength*size_of_type);
-  cudaMalloc(&deviceInput2, inputLength*size_of_type);
-  cudaMalloc(&deviceOutput, inputLength*size_of_type);
+  cudaMalloc(&deviceInput1, InputSize);
+  cudaMalloc(&deviceInput2, InputSize);
+  cudaMalloc(&deviceOutput, InputSize);
 
   //@@ Insert code to below to Copy memory to the GPU here
   time = Timer_start();
-  cudaMemcpy(deviceInput1, hostInput1, inputLength*size_of_type, cudaMemcpyHostToDevice);
-  cudaMemcpy(deviceInput2, hostInput2, inputLength*size_of_type, cudaMemcpyHostToDevice);
+  cudaMemcpy(deviceInput1, hostInput1, InputSize, cudaMemcpyHostToDevice);
+  cudaMemcpy(deviceInput2, hostInput2, InputSize, cudaMemcpyHostToDevice);
   time = Timer_Consumption(time);
   printf("Time comsuption of copying memory of %d data to the GPU is %f s \n ", inputLength, time);
 
@@ -95,7 +96,7 @@ int main(int argc, char **argv) {
 
   //@@ Copy the GPU memory back to the CPU here
   time = Timer_start();
-  cudaMemcpy(hostOutput, deviceOutput, inputLength*size_of_type, cudaMemcpyDeviceToHost);
+  cudaMemcpy(hostOutput, deviceOutput, InputSize, cudaMemcpyDeviceToHost);
   cudaDeviceSynchronize();
   time = Timer_Consumption(time);
   printf("Time comsuption of copying memory of %d data to the host is %f s \n ", inputLength, time);

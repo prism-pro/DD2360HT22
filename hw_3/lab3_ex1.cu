@@ -53,7 +53,7 @@ int main(int argc, char **argv) {
   
   //@@ Insert code below to allocate Host memory for input and output
   int size_of_type = sizeof(DataType);
-  int InputSize=inputLength*size_of_type
+  int InputSize=inputLength*size_of_type;
   hostInput1 = (DataType*) malloc(InputSize);
   hostInput2 = (DataType*) malloc(InputSize);
   hostOutput = (DataType*) malloc(InputSize);

@@ -1,9 +1,9 @@
-
 #include <stdio.h>
 #include <sys/time.h>
 #include <random>
 
 #define NUM_BINS 4096
+#define DataType unsigned int
 
 __global__ void histogram_kernel(unsigned int *input, unsigned int *bins,
                                  unsigned int num_elements,
@@ -71,7 +71,7 @@ int main(int argc, char **argv) {
   //@@ Insert code below to create reference result in CPU
   for (int i = 0; i < inputLength; i++)
   {
-    int j = hostInput[i];
+    DataType j = hostInput[i];
     if (resultRef[j] < 127)
     {
       resultRef[j] += 1;
@@ -106,8 +106,8 @@ int main(int argc, char **argv) {
 
   //@@ Insert code below to compare the output with the reference
   bool equal = true;
-  for (int i = 0; i < inputLength; i++) {
-    if (fabs(hostOutput[i] - resultRef[i]) > 1e-8) {
+  for (int i = 0; i < NUM_BINS; i++) {
+    if (fabs(hostBins[i] != resultRef[i])) {
       equal = false;
       break;
     }
@@ -121,7 +121,10 @@ int main(int argc, char **argv) {
   {
     printf("some of the results are unequal.");
   }
-
+  for (int i = 0; i < NUM_BINS; ++i)
+  {
+    printf("%d;", hostBins[i]);
+  }
   //@@ Free the GPU memory here
   cudaFree(deviceInput);
   cudaFree(deviceBins);
@@ -133,4 +136,5 @@ int main(int argc, char **argv) {
 
   return 0;
 }
+
 
